@@ -23,10 +23,18 @@ def set_seed(seed):
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--config', default=None, type=str)
+    parser.add_argument('--method', default=None, type=str, help="Options are: baseline/kadapter/kadapter2/lora/lora2/mixreview/modular/modular_small/recadam")
+    parser.add_argument('--freeze_level', default=None, type=int, help='Default value will be set to 0 for methods: baseline, mixreview, recadam, and to 1 for other methods')
+    parser.add_argument('--split', default=None, type=int)
+    parser.add_argument('--randomized_trial', default=None, type=int)
     arg_ = parser.parse_args()
     if arg_.config == None:
         raise NameError("Include a config file in the argument please.")
-
+    if arg_.freeze_level is None:
+        if arg_.method in ['baseline', 'mixreview', 'recadam']:
+            arg_.freeze_level = 0
+        else:
+            arg_.freeze_level = 1
     #Getting configurations
     with open(arg_.config) as config_file:
         hparam = json.load(config_file)
@@ -36,11 +44,7 @@ if __name__ == '__main__':
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=hparam.CUDA_VISIBLE_DEVICES
 
-    #Logging into WANDB if needed
-    if hparam.wandb_log:
-        wandb_logger = WandbLogger(project=hparam.wandb_project, name=hparam.wandb_run_name, entity="lklab_kaist")
-    else:
-        wandb_logger = None
+    wandb_logger = None
 
     #Init configs that are not given
     if 'split_num' not in hparam:
@@ -60,10 +64,10 @@ if __name__ == '__main__':
         dataset=hparam.dataset,
         dataset_version = hparam.dataset_version,
         split_num = hparam.split_num,
-        split = hparam.split,
+        split = arg_.split,
         model_name_or_path=hparam.model,
-        method=hparam.method,
-        freeze_level=hparam.freeze_level,
+        method=arg_.method,
+        freeze_level=arg_.freeze_level,
         mode=hparam.mode,
         tokenizer_name_or_path=hparam.model,
         max_input_length=hparam.input_length,
@@ -98,6 +102,17 @@ if __name__ == '__main__':
     )
     args = argparse.Namespace(**args_dict)
 
+    args.dataset_version = args.dataset_version + '_' + str(arg_.randomized_trial)
+    args.output_dir = args.output_dir + '_'+ args.dataset +'_'+args.dataset_version+'_'+args.method 
+    args.split = arg_.split
+    if args.split_num:
+        args.output_dir = args.output_dir+'_split'+str(args.split)
+        if args.check_validation_only:
+            args.checkpoint_path = os.path.join(args.output_dir.replace('split'+str(args.split), 'split'+str(args.split_num-1)), "last.ckpt")
+        elif args.split > 0:
+            args.checkpoint_path = os.path.join(args.output_dir.replace('split'+str(args.split), 'split'+str(args.split-1)), "last.ckpt")
+        if args.check_validation_only:
+            args.output_log = os.path.join(os.path.join(args.output_log, args.dataset +'_'+args.dataset_version), args.method+'_split'+str(args.split)+'.csv')
     # Defining how to save model checkpoints during training. Details: https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.model_checkpoint.html 
     callbacks = [ModelCheckpoint(dirpath = args.output_dir, save_top_k=-1, period=1)]
     checkpoint_callback = True
@@ -107,7 +122,7 @@ if __name__ == '__main__':
         callbacks=[]
 
     # Logging Learning Rate Scheduling
-    if args.use_lr_scheduling and hparam.wandb_log:
+    if args.use_lr_scheduling and wandb_logger:
         callbacks.append(pl.callbacks.LearningRateMonitor())
 
     if args.use_deepspeed:
@@ -142,7 +157,8 @@ if __name__ == '__main__':
     else:
         raise Exception('Select the correct model. Supporting "t5" and "gpt2" only.')
     Model = load_model(type=model_type)
-    
+    print ('Using checkpoint path: ', args.checkpoint_path)
+
     if args.check_validation_only:
        evaluate(args, Model)
     else:

@@ -102,6 +102,25 @@ This is an example of performing continual pretraining on CC-RecentNews (main ex
 python run.py --config configs/full_setting/training/t5_kadapters.json
 ```
 
+This is an example of performing continual learning (finetuning) on DAH (Dbpedia, AGNews, HuffPost) with t5_kadapters
+```
+python run.py --config configs/split/training/t5_split.json --method kadapter --freeze_level 0 --split 0 # on DBpedia 
+./copy_latest_ckpt.sh outputs/T5_large_dah_1400_0_kadapter_split0/
+python run.py --config configs/split/training/t5_split.json --method kadapter --freeze_level 0 --split 1 # on AGNews
+./copy_latest_ckpt.sh outputs/T5_large_dah_1400_0_kadapter_split1/
+python run.py --config configs/split/training/t5_split.json --method kadapter --freeze_level 0 --split 2 # on Huffpost
+./copy_latest_ckpt.sh outputs/T5_large_dah_1400_0_kadapter_split2/
+
+python run.py --config configs/split/evaluation/t5_split.json --method kadapter --freeze_level 0 --split 0 --randomized_trial 0 # on DBpedia validation
+python run.py --config configs/split/evaluation/t5_split.json --method kadapter --freeze_level 0 --split 1 --randomized_trial 0 # on AGNews validation
+python run.py --config configs/split/evaluation/t5_split.json --method kadapter --freeze_level 0 --split 2 --randomized_trial 0 # on HuffPost validation
+
+python run.py --config configs/split/test/t5_split.json --method kadapter --freeze_level 0 --split 0 --randomized_trial 0 # on DBpedia validation
+python run.py --config configs/split/test/t5_split.json --method kadapter --freeze_level 0 --split 1 --randomized_trial 0 # on AGNews validation
+python run.py --config configs/split/test/t5_split.json --method kadapter --freeze_level 0 --split 2 --randomized_trial 0 # on HuffPost validation
+```
+
+
 ## Reference
 ```
 @article{jang2021towards,
