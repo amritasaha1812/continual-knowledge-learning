@@ -1,13 +1,9 @@
 
 from torch.utils.data import Dataset
 import pandas as pd
-import json
-import random
 import os 
-from datasets import load_dataset
+from constants import *
 
-
-DATA_DIR = 'data/text_classifier_data/'
 class Pretrain(Dataset):
     def __init__(self, tokenizer, type_path, num_samples, input_length, output_length, args, length=None):
         self.args = args
