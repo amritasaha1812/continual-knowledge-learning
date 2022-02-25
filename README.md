@@ -103,6 +103,10 @@ python run.py --config configs/full_setting/training/t5_kadapters.json
 ```
 
 This is an example of performing continual learning (finetuning) on DAH (Dbpedia, AGNews, HuffPost) with t5_kadapters
+
+Step 1: Change the DATA_DIR in constants.py to the root dir containing the dataset
+
+Step 2: Training on the DAH dataset (wandb logging is disabled)
 ```
 python run.py --config configs/split/training/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 0 # on DBpedia 
 ./copy_latest_ckpt.sh outputs/T5_large_dah_1400_0_kadapter_split0/
@@ -110,7 +114,10 @@ python run.py --config configs/split/training/t5_dah_1400_split.json --method ka
 ./copy_latest_ckpt.sh outputs/T5_large_dah_1400_0_kadapter_split1/
 python run.py --config configs/split/training/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 2 # on Huffpost
 ./copy_latest_ckpt.sh outputs/T5_large_dah_1400_0_kadapter_split2/
+```
 
+Step 3: Validation & Test on the DAH datasets 
+```
 python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 0 --randomized_trial 0 # on DBpedia validation
 python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 1 --randomized_trial 0 # on AGNews validation
 python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 2 --randomized_trial 0 # on HuffPost validation
