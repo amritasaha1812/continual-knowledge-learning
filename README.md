@@ -40,27 +40,21 @@ For the other experimental settings such as multiple CKL phases, GPT-2, we do no
 We provide all the configs in order to reproduce the zero-shot results of our paper. We only provide the model checkpoints for the main experimental setting (full_setting) which can be downloaded with the command above.
 
     configs
-    ├── full_setting
-    │   ├── evaluation
-    │   |   ├── invariantLAMA
-    │   |   |   ├── t5_baseline.json
-    │   |   |   ├── t5_kadapters.json
-    │   |   |   ├── ...
-    │   |   ├── newLAMA
-    │   |   ├── newLAMA_easy
-    │   |   ├── updatedLAMA
+    ├── split
     │   ├── training
-    │   |   ├── t5_baseline.json
-    │   |   ├── t5_kadapters.json
+    │   |   ├── t5_dah_1400_split.json
+    │   |   ├── ...    
+    │   ├── evaluation
+    │   |   ├── t5_dah_1400_split.json
+    │   |   |   ...
+    │   ├── test
+    │   |   ├── t5_dah_1400_split.json
     │   |   ├── ...
-    ├── GPT2
     │   ├── ...
-    ├── kilt
+    ├── full_setting
     │   ├── ...
     ├── small_setting
-    │   ├── ...
-    ├── split
-    │   ├── ...                    
+    │   ├── ...             
 
 #### Components in each configurations file
 - input_length (int) : the input sequence length
@@ -92,15 +86,6 @@ We provide all the configs in order to reproduce the zero-shot results of our pa
 - split_num (int) : default is 1. more than 1 if there are multile CKL phases
 - split (int) : which CKL phase it is
 
-This is an example of getting the invariantLAMA zero-shot evaluation of continually pretrained t5_kadapters
-```
-python run.py --config configs/full_setting/evaluation/invariantLAMA/t5_kadapters.json
-```
-
-This is an example of performing continual pretraining on CC-RecentNews (main experiment) with t5_kadapters
-```
-python run.py --config configs/full_setting/training/t5_kadapters.json
-```
 
 This is an example of performing continual learning (finetuning) on DAH (Dbpedia, AGNews, HuffPost) with t5_kadapters
 
