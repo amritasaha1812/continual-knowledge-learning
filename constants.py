@@ -1,0 +1,1 @@
+DATA_DIR = 'data/text_classifier_data/'

@@ -93,11 +93,16 @@ Step 1: Change the DATA_DIR in constants.py to the root dir containing the datas
 
 Step 2: Training on the DAH dataset (wandb logging is disabled)
 ```
-python run.py --config configs/split/training/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 0 # on DBpedia 
+# Training on DBpedia 
+python run.py --config configs/split/training/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 0 --randomized_trial 0 
 ./copy_latest_ckpt.sh outputs/T5_large_dah_1400_0_kadapter_split0/
-python run.py --config configs/split/training/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 1 # on AGNews
+
+# Training on AGNews
+python run.py --config configs/split/training/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 1 --randomized_trial 0 
 ./copy_latest_ckpt.sh outputs/T5_large_dah_1400_0_kadapter_split1/
-python run.py --config configs/split/training/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 2 # on Huffpost
+
+# Training on Huffpost
+python run.py --config configs/split/training/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 2 --randomized_trial 0 
 ./copy_latest_ckpt.sh outputs/T5_large_dah_1400_0_kadapter_split2/
 ```
 
