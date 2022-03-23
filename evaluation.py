@@ -15,13 +15,14 @@ def evaluate(args, Model):
     tokenizer = T5Tokenizer.from_pretrained(args.model_name_or_path)
 
     if args.mode=='pretrain' or args.mode=='finetune':
-        dataset = Pretrain(tokenizer, 'validation', None, input_length=args.max_input_length, 
-                        output_length=args.max_output_length, args=args)
-        ids_to_answers = dataset.ids_to_answers
-    
+        dataset_split = 'validation'
     else:
-        raise Exception('Select the correct mode please.')
-    print('Length of validation data: ',len(dataset))
+        dataset_split = 'test'
+    dataset = Pretrain(tokenizer, dataset_split, None, input_length=args.max_input_length, 
+                    output_length=args.max_output_length, args=args)
+    ids_to_answers = dataset.ids_to_answers
+
+    print('Length of '+dataset_split+' data: ',len(dataset))
     loader = DataLoader(dataset, batch_size=args.train_batch_size, shuffle=False)
     
     total_cnt = 0
@@ -69,7 +70,7 @@ def evaluate(args, Model):
                 writer.writerow([lines, ground_truth, predicted])
                 if em == 1:
                     em_correct_num += 1
-    print(f'Number of total validation data: {total_cnt}')
+    print(f'Number of total '+dataset_split+' data: {total_cnt}')
 
     with open(args.output_log, 'a', newline='') as writefile:  
         writer = csv.writer(writefile)

@@ -7,7 +7,6 @@ from constants import *
 class Pretrain(Dataset):
     def __init__(self, tokenizer, type_path, num_samples, input_length, output_length, args, length=None):
         self.args = args
-        print(f'split is {self.args.split}')
         self.tokenizer = tokenizer
         self.type_path = type_path # train/ valid/test
         self.ssm = False
@@ -16,9 +15,11 @@ class Pretrain(Dataset):
             self.model_type='T5'
         elif 'gpt2' in args.model_name_or_path:
             self.model_type='GPT2'
-        if self.args.dataset == 'dah':
-            data_dir = os.path.join(os.path.join(DATA_DIR, self.args.dataset), self.dataset_version+'_'+str(self.args.split))
-            self.dataset = pd.read_csv(os.path.join(data_dir, type_path+'.txt'), delimiter='\t', names=['input', 'output'])
+        if self.args.split is not None and self.dataset_version is not None:
+            data_dir = os.path.join(DATA_DIR, self.args.dataset, self.dataset_version+'_'+str(self.args.split))
+        elif self.dataset_version is not None:
+            data_dir = os.path.join(DATA_DIR, self.args.dataset, self.dataset_version)
+        self.dataset = pd.read_csv(os.path.join(data_dir, type_path+'.txt'), delimiter='\t', names=['input', 'output'])
         self.input_length = input_length 
         self.output_length = output_length
         self.ids_to_answers = None
@@ -40,7 +41,7 @@ class Pretrain(Dataset):
         source_ids = source["input_ids"].squeeze()
         target_ids = target["input_ids"].squeeze()
         src_mask = source["attention_mask"].squeeze()
-        target_mask = source["attention_mask"].squeeze()
+        target_mask = target["attention_mask"].squeeze()
         label_ids = -1
         ground_truth_ids = -1
         return {

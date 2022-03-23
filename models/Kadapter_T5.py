@@ -423,8 +423,8 @@ class T5Attention(nn.Module):
         # Input is (batch_size, seq_length, dim)
         # Mask is (batch_size, key_length) (non-causal) or (batch_size, key_length, key_length)
         # past_key_value[0] is (batch_size, n_heads, q_len - 1, dim_per_head)
+        
         batch_size, seq_length = hidden_states.shape[:2]
-
         int_seq_length = int(seq_length)
 
         real_seq_length = seq_length
@@ -436,7 +436,6 @@ class T5Attention(nn.Module):
             real_seq_length += past_key_value[0].shape[2] if query_length is None else query_length
 
         key_length = real_seq_length if key_value_states is None else key_value_states.shape[1]
-
         def shape(states):
             """projection"""
             return states.view(batch_size, -1, self.n_heads, self.key_value_proj_dim).transpose(1, 2)
@@ -469,10 +468,11 @@ class T5Attention(nn.Module):
         # get query states
         query_states = shape(self.q(hidden_states))  # (batch_size, n_heads, seq_length, dim_per_head)
 
-        # get key/value states
+        # get key/value 
         key_states = project(
             hidden_states, self.k, key_value_states, past_key_value[0] if past_key_value is not None else None
         )
+
         value_states = project(
             hidden_states, self.v, key_value_states, past_key_value[1] if past_key_value is not None else None
         )
@@ -520,6 +520,7 @@ class T5Attention(nn.Module):
 
         if output_attentions:
             outputs = outputs + (attn_weights,)
+            
         return outputs
 
 

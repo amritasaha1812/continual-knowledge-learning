@@ -1,0 +1,22 @@
+{
+    "input_length" : 480,
+    "output_length" : 10,
+    "num_train_epochs" : 15,
+    "output_dir" : "outputs/T5_base_lm_adapt",
+    "dataset" : "anli",
+    "dataset_version" : "full",
+    "train_batch_size" :32,
+    "learning_rate" : 1e-3,
+    "model" : "google/t5-base-lm-adapt",
+    "gradient_accumulation_steps" : 1,
+    "ngpu" : 4,
+    "num_workers" : 40,
+    "resume_from_checkpoint" : null,
+    "accelerator" : "ddp",
+    "use_deepspeed" : false,
+    "CUDA_VISIBLE_DEVICES" : "0,1,2,3",
+    "mode" : "finetune",
+    "use_lr_scheduling" : true,
+    "check_validation" : false,
+    "checkpoint_path" : ""
+}

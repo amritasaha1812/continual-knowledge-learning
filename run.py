@@ -27,6 +27,7 @@ if __name__ == '__main__':
     parser.add_argument('--freeze_level', default=None, type=int, help='Default value will be set to 0 for methods: baseline, mixreview, recadam, and to 1 for other methods')
     parser.add_argument('--split', default=None, type=int)
     parser.add_argument('--randomized_trial', default=None, type=int)
+    parser.add_argument('--seed', default=None, type=int)
     arg_ = parser.parse_args()
     if arg_.config == None:
         raise NameError("Include a config file in the argument please.")
@@ -35,10 +36,14 @@ if __name__ == '__main__':
             arg_.freeze_level = 0
         else:
             arg_.freeze_level = 1
+    if arg_.seed is None:
+        raise NameError('Please enter a seed')
     #Getting configurations
     with open(arg_.config) as config_file:
         hparam = json.load(config_file)
     hparam = argparse.Namespace(**hparam)
+
+    seed = arg_.seed
 
     #Setting GPUs to use
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
@@ -48,9 +53,7 @@ if __name__ == '__main__':
 
     #Init configs that are not given
     if 'split_num' not in hparam:
-        hparam.split_num = 1
-    if 'split' not in hparam:
-        hparam.split = 0
+        hparam.split_num = None
     if 'grad_norm' not in hparam:
         hparam.grad_norm = 0.5
     if 'weight_decay' not in hparam:
@@ -94,7 +97,7 @@ if __name__ == '__main__':
         use_deepspeed=hparam.use_deepspeed,
         opt_level='O1', # you can find out more on optimisation levels here https://nvidia.github.io/apex/amp.html#opt-levels-and-properties
         max_grad_norm=hparam.grad_norm, # if you enable 16-bit training then set this to a sensible value, 0.5 is a good default
-        seed=42,
+        seed=arg_.seed,
         check_validation_only=hparam.check_validation,
         checkpoint_path=hparam.checkpoint_path,
         accelerator=hparam.accelerator,
@@ -102,17 +105,23 @@ if __name__ == '__main__':
     )
     args = argparse.Namespace(**args_dict)
 
-    args.dataset_version = args.dataset_version + '_' + str(arg_.randomized_trial)
-    args.output_dir = args.output_dir + '_'+ args.dataset +'_'+args.dataset_version+'_'+args.method 
+    if arg_.randomized_trial:
+        args.dataset_version = args.dataset_version + '_' + str(arg_.randomized_trial)
+    args.output_dir = args.output_dir + '_'+ args.dataset +'_'+args.dataset_version+'_'+args.method+'_freeze_'+str(args.freeze_level)+'_seed_'+str(arg_.seed)
     args.split = arg_.split
     if args.split_num:
         args.output_dir = args.output_dir+'_split'+str(args.split)
         if args.check_validation_only:
             args.checkpoint_path = os.path.join(args.output_dir.replace('split'+str(args.split), 'split'+str(args.split_num-1)), "last.ckpt")
+            args.output_log = os.path.join(args.output_log, args.dataset +'_'+args.dataset_version, args.method+'_freeze_'+args.freeze_level+'_split'+str(args.split)+'.csv')
         elif args.split > 0:
             args.checkpoint_path = os.path.join(args.output_dir.replace('split'+str(args.split), 'split'+str(args.split-1)), "last.ckpt")
+            
+    else:
         if args.check_validation_only:
-            args.output_log = os.path.join(os.path.join(args.output_log, args.dataset +'_'+args.dataset_version), args.method+'_split'+str(args.split)+'.csv')
+            args.checkpoint_path = os.path.join(args.output_dir, "last.ckpt")
+            args.output_log = os.path.join(args.output_log, args.dataset +'_'+args.dataset_version, args.method+'_freeze_'+str(args.freeze_level)+'.csv')
+
     # Defining how to save model checkpoints during training. Details: https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.model_checkpoint.html 
     callbacks = [ModelCheckpoint(dirpath = args.output_dir, save_top_k=-1, period=1)]
     checkpoint_callback = True
@@ -162,7 +171,7 @@ if __name__ == '__main__':
     if args.check_validation_only:
        evaluate(args, Model)
     else:
-        set_seed(40)
+        set_seed(seed)
         if args.checkpoint_path!="":
             model = Model.load_from_checkpoint(checkpoint_path=args.checkpoint_path, hparams=args, strict=False) 
         else:
