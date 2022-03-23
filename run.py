@@ -1,5 +1,7 @@
 import argparse
 from argparse import ArgumentParser
+from ast import parse
+from email.policy import default
 import os
 import json
 import random
@@ -28,6 +30,8 @@ if __name__ == '__main__':
     parser.add_argument('--split', default=None, type=int)
     parser.add_argument('--randomized_trial', default=None, type=int)
     parser.add_argument('--seed', default=None, type=int)
+    parser.add_argument('--data_split', default='train', type=str)
+    parser.add_argument('--checkpoint_path', default=None, type=str)
     arg_ = parser.parse_args()
     if arg_.config == None:
         raise NameError("Include a config file in the argument please.")
@@ -41,6 +45,8 @@ if __name__ == '__main__':
     #Getting configurations
     with open(arg_.config) as config_file:
         hparam = json.load(config_file)
+
+
     hparam = argparse.Namespace(**hparam)
 
     seed = arg_.seed
@@ -60,7 +66,12 @@ if __name__ == '__main__':
         hparam.weight_decay = 0.0
     if 'output_log' not in hparam:
         hparam.output_log = None
-        
+    if arg_.data_split == 'test':
+        hparam.output_log = 'log_test'
+        hparam.mode = 'test'
+    if arg_.data_split != 'train' and 'evaluation' not in arg_.config:
+        raise Exception('config file should be for evaluation when data split valid or test is chosen')
+
     #Setting configurations
     args_dict = dict(
         output_dir=hparam.output_dir, # Path to save the checkpoints
@@ -99,7 +110,7 @@ if __name__ == '__main__':
         max_grad_norm=hparam.grad_norm, # if you enable 16-bit training then set this to a sensible value, 0.5 is a good default
         seed=arg_.seed,
         check_validation_only=hparam.check_validation,
-        checkpoint_path=hparam.checkpoint_path,
+        checkpoint_path=arg_.checkpoint_path,
         accelerator=hparam.accelerator,
         output_log=hparam.output_log,
     )
@@ -112,14 +123,17 @@ if __name__ == '__main__':
     if args.split_num:
         args.output_dir = args.output_dir+'_split'+str(args.split)
         if args.check_validation_only:
-            args.checkpoint_path = os.path.join(args.output_dir.replace('split'+str(args.split), 'split'+str(args.split_num-1)), "last.ckpt")
+            if args.checkpoint_path is None:
+                args.checkpoint_path = os.path.join(args.output_dir.replace('split'+str(args.split), 'split'+str(args.split_num-1)), "last.ckpt")
             args.output_log = os.path.join(args.output_log, args.dataset +'_'+args.dataset_version, args.method+'_freeze_'+args.freeze_level+'_split'+str(args.split)+'.csv')
         elif args.split > 0:
-            args.checkpoint_path = os.path.join(args.output_dir.replace('split'+str(args.split), 'split'+str(args.split-1)), "last.ckpt")
+            if args.checkpoint_path is None:
+                args.checkpoint_path = os.path.join(args.output_dir.replace('split'+str(args.split), 'split'+str(args.split-1)), "last.ckpt")
             
     else:
         if args.check_validation_only:
-            args.checkpoint_path = os.path.join(args.output_dir, "last.ckpt")
+            if args.checkpoint_path is None:
+                args.checkpoint_path = os.path.join(args.output_dir, "last.ckpt")
             args.output_log = os.path.join(args.output_log, args.dataset +'_'+args.dataset_version, args.method+'_freeze_'+str(args.freeze_level)+'.csv')
 
     # Defining how to save model checkpoints during training. Details: https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.model_checkpoint.html 

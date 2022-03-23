@@ -18,6 +18,5 @@
     "mode" : "finetune",
     "use_lr_scheduling" : true,
     "check_validation" : false,
-    "checkpoint_path" : "",
     "split_num" : 3
 }

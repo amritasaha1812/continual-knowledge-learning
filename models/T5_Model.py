@@ -290,8 +290,8 @@ class T5(pl.LightningModule):
         targets = self.ids_to_clean_text(batch["target_ids"])
         ids = batch["label_ids"]
         source = self.ids_to_clean_text(batch["source_ids"])
-        print("preds", preds)
-        print("targets", targets)
+        #print("preds", preds)
+        #print("targets", targets)
             
         loss = self._step(batch)
 
