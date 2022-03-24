@@ -11,6 +11,7 @@
     "gradient_accumulation_steps" : 3,
     "ngpu" : 4,
     "num_workers" : 40,
+    "eval_metric": "f-score",
     "resume_from_checkpoint" : null,
     "accelerator" : "ddp",
     "use_deepspeed" : false,

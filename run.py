@@ -14,6 +14,8 @@ from models import load_model
 
 from Datasets import Pretrain
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning import loggers as pl_loggers
 
 def set_seed(seed):
     random.seed(seed)
@@ -80,6 +82,7 @@ if __name__ == '__main__':
         split_num = hparam.split_num,
         split = arg_.split,
         model_name_or_path=hparam.model,
+        eval_metric=hparam.eval_metric,
         method=arg_.method,
         freeze_level=arg_.freeze_level,
         mode=hparam.mode,
@@ -104,7 +107,7 @@ if __name__ == '__main__':
         n_val=-1,
         n_train=-1,
         n_test=-1,
-        early_stop_callback=False,
+        early_stop_callback=True,
         use_deepspeed=hparam.use_deepspeed,
         opt_level='O1', # you can find out more on optimisation levels here https://nvidia.github.io/apex/amp.html#opt-levels-and-properties
         max_grad_norm=hparam.grad_norm, # if you enable 16-bit training then set this to a sensible value, 0.5 is a good default
@@ -137,7 +140,7 @@ if __name__ == '__main__':
             args.output_log = os.path.join(args.output_log, args.dataset +'_'+args.dataset_version, args.method+'_freeze_'+str(args.freeze_level)+'.csv')
 
     # Defining how to save model checkpoints during training. Details: https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.model_checkpoint.html 
-    callbacks = [ModelCheckpoint(dirpath = args.output_dir, save_top_k=-1, period=1)]
+    callbacks = [ModelCheckpoint(dirpath = args.output_dir, filename = '{epoch}-{val_loss:.2f}', monitor='val_loss',save_top_k=5, every_n_val_epochs=1)]
     checkpoint_callback = True
 
     if args.output_dir=="":
@@ -145,8 +148,13 @@ if __name__ == '__main__':
         callbacks=[]
 
     # Logging Learning Rate Scheduling
-    if args.use_lr_scheduling and wandb_logger:
+    if args.use_lr_scheduling:
         callbacks.append(pl.callbacks.LearningRateMonitor())
+
+    if args.early_stop_callback:
+        early_stop_callback = EarlyStopping(monitor="val_loss", min_delta=0.00, patience=5, verbose=False, mode="max")
+        callbacks.append(early_stop_callback)
+
 
     if args.use_deepspeed:
         plugins = 'deepspeed_stage_2'
@@ -154,6 +162,8 @@ if __name__ == '__main__':
     else:
         plugins = []
         use_fp_16 = False
+
+    tb_logger = pl_loggers.TensorBoardLogger("logs/")
 
     # Setting Flags for pytorch lightning trainer. Details: https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html#trainer-flags
     train_params = dict(
@@ -167,7 +177,7 @@ if __name__ == '__main__':
         gradient_clip_val=args.max_grad_norm,
         checkpoint_callback=checkpoint_callback,
         val_check_interval=args.val_check_interval,
-        logger=wandb_logger,
+        logger=tb_logger,
         callbacks = callbacks,
         accelerator=args.accelerator,
     )
@@ -182,11 +192,13 @@ if __name__ == '__main__':
     Model = load_model(type=model_type)
     print ('Using checkpoint path: ', args.checkpoint_path)
 
+    
+
     if args.check_validation_only:
        evaluate(args, Model)
     else:
         set_seed(seed)
-        if args.checkpoint_path!="":
+        if args.checkpoint_path!="" and args.checkpoint_path is not None:
             model = Model.load_from_checkpoint(checkpoint_path=args.checkpoint_path, hparams=args, strict=False) 
         else:
             model = Model(args)

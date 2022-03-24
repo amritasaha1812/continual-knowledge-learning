@@ -297,32 +297,54 @@ class T5(pl.LightningModule):
 
         self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
-        em_score = 0
-        accuracy = 0
-        rouge_score = 0
-        f1_score = 0
-
-        if self.hparams.dataset == 'TriviaQA' or self.hparams.dataset == 'zsRE' or self.hparams.dataset == 'TREX' or self.hparams.dataset == 'NQ' or self.hparams.dataset == 'HotpotQA':
-            em_score, accuracy = self.calculate_scores_multipleanswers(preds, targets, ids)
-        elif self.hparams.dataset =='ELI5':
-            rouge_score = self.calculate_rouge_multipleanswers(preds, targets, ids)
-        elif self.hparams.dataset =='WOW':
-            f1_score = self.calculate_f1_scores(preds, targets, ids)
+        em_score = None
+        accuracy = None
+        rouge_score = None
+        f1_score = None
+        if 'eval_metric' not in self.hparams:
+            if self.hparams.dataset == 'TriviaQA' or self.hparams.dataset == 'zsRE' or self.hparams.dataset == 'TREX' or self.hparams.dataset == 'NQ' or self.hparams.dataset == 'HotpotQA':
+                em_score, accuracy = self.calculate_scores_multipleanswers(preds, targets, ids)
+            elif self.hparams.dataset =='ELI5':
+                rouge_score = self.calculate_rouge_multipleanswers(preds, targets, ids)
+            elif self.hparams.dataset =='WOW':
+                f1_score = self.calculate_f1_scores(preds, targets, ids)
         else:
-            em_score, accuracy = self.calculate_scores(preds, targets)
-
-        em_score = torch.tensor(em_score,dtype=torch.float32)
-        accuracy = torch.tensor(accuracy,dtype=torch.float32)
-        rouge_score = torch.tensor(rouge_score, dtype=torch.float32)
-        f1_score = torch.tensor(f1_score, dtype=torch.float32)
-        if self.hparams.dataset == 'ELI5':
-            self.log('rouge_score', rouge_score, prog_bar=True, logger=True)
-        elif self.hparams.dataset == 'WOW':
-            self.log('f1_score', f1_score, prog_bar=True, logger=True)
-        elif self.hparams.dataset == 'fever' or self.hparams.dataset == 'AY2' or self.hparams.dataset== 'TREX' or self.hparams.dataset== 'zsRE':
-            self.log('accuracy', accuracy, prog_bar=True, logger=True)
+            if self.hparams.eval_metric == 'f-score':
+                f1_score = self.calculate_f1_scores(preds, targets, ids)
+            elif self.hparams.eval_metric == 'rouge':
+                rouge_score = self.calculate_rouge_multipleanswers(preds, targets, ids)
+            elif self.hparams.eval_metric == 'em_multipleanswers':
+                em_score, accuracy = self.calculate_scores_multipleanswers(preds, targets, ids)
+            elif self.hparams.eval_metric == 'em':
+                em_score, accuracy = self.calculate_scores(preds, targets)
+            else:
+                em_score, accuracy = self.calculate_scores(preds, targets)
+        if em_score is not None:
+            em_score = torch.tensor(em_score,dtype=torch.float32)
+        if accuracy is not None:
+            accuracy = torch.tensor(accuracy,dtype=torch.float32)
+        if rouge_score is not None:
+            rouge_score = torch.tensor(rouge_score, dtype=torch.float32)
+        if f1_score is not None:
+            f1_score = torch.tensor(f1_score, dtype=torch.float32)
+        if 'eval_metric' in self.hparams:
+            if em_score is not None:
+                self.log('em_score', em_score, prog_bar=True, logger=True)
+            if accuracy is not None:
+                self.log('accuracy', accuracy, prog_bar=True, logger=True)
+            if rouge_score is not None:
+                self.log('rouge_score', rouge_score, prog_bar=True, logger=True)
+            if f1_score is not None:
+                self.log('f1_score', f1_score, prog_bar=True, logger=True)
         else:
-            self.log('em_score', em_score, prog_bar=True, logger=True)
+            if self.hparams.dataset == 'ELI5':
+                self.log('rouge_score', rouge_score, prog_bar=True, logger=True)
+            elif self.hparams.dataset == 'WOW':
+                self.log('f1_score', f1_score, prog_bar=True, logger=True)
+            elif self.hparams.dataset == 'fever' or self.hparams.dataset == 'AY2' or self.hparams.dataset== 'TREX' or self.hparams.dataset== 'zsRE':
+                self.log('accuracy', accuracy, prog_bar=True, logger=True)
+            else:
+                self.log('em_score', em_score, prog_bar=True, logger=True)
 
 
     def training_step(self, batch, batch_idx):

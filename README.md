@@ -95,36 +95,33 @@ Step 2: Training on the DAH dataset (wandb logging is disabled)
 ```
 # Training on DBpedia 
 python run.py --config configs/split/training/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 0 --randomized_trial 0 --seed 100
-./copy_latest_ckpt.sh outputs/T5_large_dah_1400_0_kadapter_split0/
 
 # Training on AGNews
 python run.py --config configs/split/training/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 1 --randomized_trial 0 --seed 100
-./copy_latest_ckpt.sh outputs/T5_large_dah_1400_0_kadapter_split1/
 
 # Training on Huffpost
 python run.py --config configs/split/training/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 2 --randomized_trial 0 --seed 100
-./copy_latest_ckpt.sh outputs/T5_large_dah_1400_0_kadapter_split2/
 ```
 
 Step 3: Validation & Test on the DAH datasets 
 ```
 # on DBpedia validation
-python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 0 --randomized_trial 0 --seed 100 --data_split valid
+python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 0 --randomized_trial 0 --seed 100 --data_split valid --checkpoint_path <path_to_checkpoint>
 
 # on AGNews validation
-python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 1 --randomized_trial 0 --seed 100 --data_split valid 
+python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 1 --randomized_trial 0 --seed 100 --data_split valid --checkpoint_path <path_to_checkpoint> 
 
 # on HuffPost validation
-python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 2 --randomized_trial 0 --seed 100 --data_split valid 
+python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 2 --randomized_trial 0 --seed 100 --data_split valid --checkpoint_path <path_to_checkpoint> 
 
 # on DBpedia test
-python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 0 --randomized_trial 0 --data_split test
+python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 0 --randomized_trial 0 --data_split test --checkpoint_path <path_to_checkpoint>
 
 # on AGNews test
-python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 1 --randomized_trial 0 --data_split test 
+python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 1 --randomized_trial 0 --data_split test --checkpoint_path <path_to_checkpoint>
 
 # on HuffPost test
-python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 2 --randomized_trial 0 --data_split test 
+python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 2 --randomized_trial 0 --data_split test --checkpoint_path <path_to_checkpoint>
 ```
 
 ### Example on standalone setting 
@@ -142,7 +139,6 @@ python run.py --config configs/standalone/evaluation/t5_base_anli_full.json --me
 python run.py --config configs/standalone/test/t5_base_anli_full.json --method kadapter --freeze_level 1 --seed 100 --data_split test --checkpoint_path <path_to_checkpoint>
 
 
-## Reference
 ```
 @article{jang2021towards,
   title={Towards Continual Knowledge Learning of Language Models},
