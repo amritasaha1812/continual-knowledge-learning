@@ -24,6 +24,18 @@ def set_seed(seed):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
+def get_best_checkpoint(checkpoint_dir):
+    checkpoint_path = os.path.join(checkpoint_dir, "last.ckpt")
+    if os.path.exists(checkpoint_dir) and len(os.listdir(checkpoint_dir))>0:
+        if not os.path.exists(checkpoint_path):
+            val_losses_for_checkpoints = {x: float(x.split('val_loss=')[1].replace('.ckpt', '')) for x in os.listdir(checkpoint_dir)}
+            min_val_loss_checkpoint = [k for k, v in sorted(val_losses_for_checkpoints.items(), key=lambda item: item[1])][0]
+            checkpoint_path = os.path.join(checkpoint_dir, min_val_loss_checkpoint)
+    else:
+        raise Exception('Cannot find checkpoint directory ',checkpoint_dir)
+    return checkpoint_path
+    
+
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--config', default=None, type=str)
@@ -127,16 +139,18 @@ if __name__ == '__main__':
         args.output_dir = args.output_dir+'_split'+str(args.split)
         if args.check_validation_only:
             if args.checkpoint_path is None:
-                args.checkpoint_path = os.path.join(args.output_dir.replace('split'+str(args.split), 'split'+str(args.split_num-1)), "last.ckpt")
+                checkpoint_dir = args.output_dir.replace('split'+str(args.split), 'split'+str(args.split_num-1))
+                args.checkpoint_path = get_best_checkpoint(checkpoint_dir)
             args.output_log = os.path.join(args.output_log, args.dataset +'_'+args.dataset_version, args.method+'_freeze_'+args.freeze_level+'_split'+str(args.split)+'.csv')
         elif args.split > 0:
             if args.checkpoint_path is None:
-                args.checkpoint_path = os.path.join(args.output_dir.replace('split'+str(args.split), 'split'+str(args.split-1)), "last.ckpt")
+                checkpoint_dir = args.output_dir.replace('split'+str(args.split), 'split'+str(args.split-1))
+                args.checkpoint_path = get_best_checkpoint(checkpoint_dir)
             
     else:
         if args.check_validation_only:
             if args.checkpoint_path is None:
-                args.checkpoint_path = os.path.join(args.output_dir, "last.ckpt")
+                args.checkpoint_path = get_best_checkpoint(args.output_dir) 
             args.output_log = os.path.join(args.output_log, args.dataset +'_'+args.dataset_version, args.method+'_freeze_'+str(args.freeze_level)+'.csv')
 
     # Defining how to save model checkpoints during training. Details: https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.model_checkpoint.html 

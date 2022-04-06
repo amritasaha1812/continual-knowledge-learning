@@ -89,7 +89,7 @@ We provide all the configs in order to reproduce the zero-shot results of our pa
 ### Example of Continual Learning setting 
 This is an example of performing continual learning (finetuning) on DAH (Dbpedia, AGNews, HuffPost) with t5_kadapters
 
-Step 1: Change the DATA_DIR in constants.py to the root dir containing the dataset. Inside DATA_DIR create a folder of the name "<dataset>_<dataset_version>_<randomized_trial>_<split>"
+Step 1: Change the DATA_DIR in constants.py to the root dir containing the dataset. Inside DATA_DIR create a folder of the name <dataset>_<dataset_version>_<randomized_trial>_<split>
 
 Step 2: Create the config files for training `configs/split/training/t5_dah_1400_split.json` and evaluation `configs/split/evaluation/t5_dah_1400_split.json`
 
@@ -155,7 +155,7 @@ python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method 
 ### Example on standalone setting 
 Another example on performing standalone (finetuning) on ANLI dataset  with t5_kadapters 
 
-Step 1: Change the DATA_DIR in constants.py to the root dir containing the dataset. Inside DATA_DIR create a folder of the name "<dataset>_<dataset_version>"
+Step 1: Change the DATA_DIR in constants.py to the root dir containing the dataset. Inside DATA_DIR create a folder of the name <dataset>_<dataset_version>
 
 Step 2:  Create the config files for training `configs/split/training/t5_base_anli_full.json` and evaluation `configs/split/evaluation/t5_base_anli_full.json` (see example config file under Example of Continual Learning setting)
 
