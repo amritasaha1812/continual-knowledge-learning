@@ -38,14 +38,14 @@ def get_best_checkpoint(checkpoint_dir):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('--config', default=None, type=str)
+    parser.add_argument('--config', default=None, type=str, help="Config file for training/evaluation/test")
     parser.add_argument('--method', default=None, type=str, help="Options are: baseline/kadapter/kadapter2/lora/lora2/mixreview/modular/modular_small/recadam")
     parser.add_argument('--freeze_level', default=None, type=int, help='Default value will be set to 0 for methods: baseline, mixreview, recadam, and to 1 for other methods')
-    parser.add_argument('--split', default=None, type=int)
-    parser.add_argument('--randomized_trial', default=None, type=int)
-    parser.add_argument('--seed', default=None, type=int)
-    parser.add_argument('--data_split', default='train', type=str)
-    parser.add_argument('--checkpoint_path', default=None, type=str)
+    parser.add_argument('--split', default=None, type=int, help='Optional argument for providing split number (0,1,2...) in the continual learning setup. For standalone setting ignore this argument')
+    parser.add_argument('--randomized_trial', default=None, type=int, help='Optional argument, if different dataset versions are created apriori for different randomized trials, provide this argument, otherwise ignore')
+    parser.add_argument('--seed', default=None, type=int, help='seed value to fix all torch related random seeds')
+    parser.add_argument('--data_split', default='train', type=str, help='train/validation/test')
+    parser.add_argument('--checkpoint_path', default=None, type=str, help='Path to model checkpoint to initialize training with or run evaluation/test on. Optional, if not provided, it will select the checkpoint having minimum val_loss')
     arg_ = parser.parse_args()
     if arg_.config == None:
         raise NameError("Include a config file in the argument please.")
