@@ -89,9 +89,37 @@ We provide all the configs in order to reproduce the zero-shot results of our pa
 ### Example of Continual Learning setting 
 This is an example of performing continual learning (finetuning) on DAH (Dbpedia, AGNews, HuffPost) with t5_kadapters
 
-Step 1: Change the DATA_DIR in constants.py to the root dir containing the dataset
+Step 1: Change the DATA_DIR in constants.py to the root dir containing the dataset. Inside DATA_DIR create a folder of the name "<dataset>_<dataset_version>_<randomized_trial>_<split>"
 
-Step 2: Training on the DAH dataset (wandb logging is disabled)
+Step 2: Create the config files for training `configs/split/training/t5_dah_1400_split.json` and evaluation `configs/split/evaluation/t5_dah_1400_split.json`
+
+```
+{
+    "input_length" : 128,               # input sequence length
+    "output_length" : 128,              # output sequence length
+    "num_train_epochs" : 3,
+    "output_dir" : "outputs/T5_large",  # output will be dumped in <output_dir>_<dataset>_<dataset_version>_<randomized_trial>_<method>_freeze_<freeze_level>_seed_<seed>_split<split>
+    "dataset" : "dah",                  # name of the dataset
+    "dataset_version" : "1400",         # full / k (if k-shot)
+    "train_batch_size" : 5,
+    "learning_rate" : 1e-3,
+    "model" : "google/t5-large-ssm",
+    "gradient_accumulation_steps" : 3,
+    "ngpu" : 4,
+    "num_workers" : 40,
+    "eval_metric": "f-score",           # f-score / rouge / em_multipleanswers / em (To use new customized evaluation metrics add it to models/T5_Model.py or models/GPT2_Model.py)
+    "resume_from_checkpoint" : null,
+    "accelerator" : "ddp",
+    "use_deepspeed" : false,
+    "CUDA_VISIBLE_DEVICES" : "0,1,2,3",
+    "mode" : "finetune",                # pretrain / finetune 
+    "use_lr_scheduling" : true,
+    "check_validation" : false,         # true to run evaluation, false during training
+    "split_num" : 3                     # number of splits in the continual learning setting 
+}
+```
+
+Step 3: Training on the DAH dataset (wandb logging is disabled)
 ```
 # Training on DBpedia 
 python run.py --config configs/split/training/t5_dah_1400_split.json --method kadapter --freeze_level 0 --split 0 --randomized_trial 0 --seed 100
@@ -127,9 +155,11 @@ python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method 
 ### Example on standalone setting 
 Another example on performing standalone (finetuning) on ANLI dataset  with t5_kadapters 
 
-Step 1: Change the DATA_DIR in constants.py to the root dir containing the dataset
+Step 1: Change the DATA_DIR in constants.py to the root dir containing the dataset. Inside DATA_DIR create a folder of the name "<dataset>_<dataset_version>"
 
-Step 2: Training on the DAH dataset (wandb logging is disabled)
+Step 2:  Create the config files for training `configs/split/training/t5_base_anli_full.json` and evaluation `configs/split/evaluation/t5_base_anli_full.json` (see example config file under Example of Continual Learning setting)
+
+Step 3: Training on the ANLI dataset (wandb logging is disabled)
 ```
 # Training on ANLI 
 python run.py --config configs/standalone/training/t5_base_anli_full.json --method kadapter --freeze_level 1 --seed 100 

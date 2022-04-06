@@ -119,11 +119,11 @@ if __name__ == '__main__':
     )
     args = argparse.Namespace(**args_dict)
 
-    if arg_.randomized_trial:
+    if arg_.randomized_trial is not None:
         args.dataset_version = args.dataset_version + '_' + str(arg_.randomized_trial)
     args.output_dir = args.output_dir + '_'+ args.dataset +'_'+args.dataset_version+'_'+args.method+'_freeze_'+str(args.freeze_level)+'_seed_'+str(arg_.seed)
     args.split = arg_.split
-    if args.split_num:
+    if args.split_num is not None:
         args.output_dir = args.output_dir+'_split'+str(args.split)
         if args.check_validation_only:
             if args.checkpoint_path is None:
