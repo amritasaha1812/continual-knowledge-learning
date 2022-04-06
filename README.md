@@ -89,7 +89,7 @@ We provide all the configs in order to reproduce the zero-shot results of our pa
 ### Example of Continual Learning setting 
 This is an example of performing continual learning (finetuning) on DAH (Dbpedia, AGNews, HuffPost) with t5_kadapters
 
-Step 1: Change the DATA_DIR in constants.py to the root dir containing the dataset. Inside DATA_DIR create a folder of the name <dataset>_<dataset_version>_<randomized_trial>_<split>
+Step 1: Change the DATA_DIR in constants.py to the root dir containing the dataset. Inside DATA_DIR create a folder of the name $(dataset)_$(dataset_version)_$(randomized_trial)_$(split)
 
 Step 2: Create the config files for training `configs/split/training/t5_dah_1400_split.json` and evaluation `configs/split/evaluation/t5_dah_1400_split.json`
 
@@ -98,7 +98,7 @@ Step 2: Create the config files for training `configs/split/training/t5_dah_1400
     "input_length" : 128,               # input sequence length
     "output_length" : 128,              # output sequence length
     "num_train_epochs" : 3,
-    "output_dir" : "outputs/T5_large",  # output will be dumped in <output_dir>_<dataset>_<dataset_version>_<randomized_trial>_<method>_freeze_<freeze_level>_seed_<seed>_split<split>
+    "output_dir" : "outputs/T5_large",  # output will be dumped in $(output_dir)_$(dataset)_$(dataset_version)_$(randomized_trial)_$(method)_freeze_$(freeze_level)_seed_$(seed)_split$(split)
     "dataset" : "dah",                  # name of the dataset
     "dataset_version" : "1400",         # full / k (if k-shot)
     "train_batch_size" : 5,
@@ -155,7 +155,7 @@ python run.py --config configs/split/evaluation/t5_dah_1400_split.json --method 
 ### Example on standalone setting 
 Another example on performing standalone (finetuning) on ANLI dataset  with t5_kadapters 
 
-Step 1: Change the DATA_DIR in constants.py to the root dir containing the dataset. Inside DATA_DIR create a folder of the name <dataset>_<dataset_version>
+Step 1: Change the DATA_DIR in constants.py to the root dir containing the dataset. Inside DATA_DIR create a folder of the name $(dataset)_$(dataset_version)
 
 Step 2:  Create the config files for training `configs/split/training/t5_base_anli_full.json` and evaluation `configs/split/evaluation/t5_base_anli_full.json` (see example config file under Example of Continual Learning setting)
 
